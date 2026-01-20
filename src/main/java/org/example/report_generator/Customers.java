@@ -4,7 +4,7 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 
 public class Customers {
-    private final SimpleIntegerProperty id;   // Solo para uso interno
+    private final SimpleIntegerProperty id;
 
     private final SimpleStringProperty nombre;
     private final SimpleStringProperty email;
