@@ -8,6 +8,10 @@ module org.example.report_generator {
     requires net.synedra.validatorfx;
     requires org.kordamp.bootstrapfx.core;
     requires eu.hansolo.tilesfx;
+    requires java.desktop;
+    requires org.jfree.jfreechart;
+    requires javafx.swing;
+    requires org.apache.pdfbox;
 
     opens org.example.report_generator to javafx.fxml;
     exports org.example.report_generator;
