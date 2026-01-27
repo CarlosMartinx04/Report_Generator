@@ -45,13 +45,17 @@
               </columns>
           </TableView>
 
-          <HBox>
-              <padding>
-                  <Insets bottom="10.0" left="10.0" top="10.0"/>
-              </padding>
-              <Label fx:id="labelCustomers"/>
-              <Label fx:id="labelTotalCustomers"/>
-          </HBox>
+          <VBox>
+              <HBox>
+                  <padding>
+                      <Insets bottom="10.0" left="10.0" top="10.0"/>
+                  </padding>
+                  <Label fx:id="labelCustomers"/>
+                  <Label fx:id="labelTotalCustomers"/>
+              </HBox>
+              <Button fx:id="buttonHelp" onAction="#onActionHelp"/>
+          </VBox>
+
       </VBox>
   </left>
 

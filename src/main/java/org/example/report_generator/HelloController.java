@@ -5,10 +5,16 @@ import javafx.collections.ObservableList;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.embed.swing.SwingNode;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.WritableImage;
 import javafx.scene.layout.BorderPane;
@@ -20,29 +26,36 @@ import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.graphics.image.LosslessFactory;
+import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.data.general.DefaultPieDataset;
 
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * @author Carlos Gabriel Cokchi Martinez
+ */
 public class HelloController implements Initializable {
     private ResourceBundle bundle;
 
     @FXML
     private BorderPane chartPane;
     @FXML
-    private Button buttonSelectCSV, buttonExportPDF, buttonApplyFilters;
+    private Button buttonSelectCSV, buttonExportPDF, buttonApplyFilters, buttonHelp;
     @FXML
     private TextField textFieldName;
     @FXML
@@ -59,7 +72,12 @@ public class HelloController implements Initializable {
     @FXML
     private Label labelCustomers, labelTotalCustomers;
 
-
+    /**
+     * Este metodo inicializa el controlador al cargar la vista
+     * Genera el idioma por defecto y gestiona el contolador de idiomas
+     * @param url
+     * @param resourceBundle
+     */
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         setLanguage(Locale.getDefault());
@@ -78,6 +96,9 @@ public class HelloController implements Initializable {
         });
     }
 
+    /**
+     * Carga los idiomas en el comboBox
+     */
     private void SetLanguageNames() {
         comboBoxLanguage.getItems().clear();
         comboBoxLanguage.getItems().addAll(
@@ -86,6 +107,12 @@ public class HelloController implements Initializable {
         );
     }
 
+    /**
+     * Comprueba el idioma seleccionado y genera los componentes con los datos del directorio Resources Bundle 'Messages'
+     * Permite cambiar el idioma cuando se seleccione una opcion del comboBox dentro del método
+     * {@link #initialize(URL, ResourceBundle)}
+     * @param locale
+     */
     private void setLanguage(Locale locale){
         bundle = ResourceBundle.getBundle("i18n/Messages", locale);
         comboBoxCity.setPromptText(bundle.getString("cb.comboBoxCity"));
@@ -93,6 +120,7 @@ public class HelloController implements Initializable {
         buttonSelectCSV.setText(bundle.getString("btn.buttonSelectCSV"));
         buttonExportPDF.setText(bundle.getString("btn.buttonExportPDF"));
         buttonApplyFilters.setText(bundle.getString("btn.buttonApplyFilters"));
+        buttonHelp.setText(bundle.getString("btn.buttonHelp"));
 
         textFieldName.setPromptText(bundle.getString("tf.textFieldName"));
 
@@ -104,9 +132,17 @@ public class HelloController implements Initializable {
 
     }
 
-    
+    /**
+     * onActionChooser permite seleccionar un archivo del ordenador que sea con formato .csv
+     * Crea una variable FileChooser para seleccionar un documento
+     * Accede con el valor stage de la clase Stage al buscador
+     * Crea el gráfico a partir del archivo seleccionado
+     * Mete dentro del comboBox Ciudades todas las ciudades del archivo .csv
+     * @param event
+     * @throws IOException
+     */
     @FXML
-    public void onActionChooser(ActionEvent event) throws IOException {
+    public void onActionChooser(ActionEvent event) {
 
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Seleccionar archivo CSV");
@@ -130,7 +166,15 @@ public class HelloController implements Initializable {
         }
     }
 
-    public void loadCSV (File archivo) throws IOException {
+    /**
+     * Encargado de leer el archivo .csv con formato columnas separadas por ,
+     * Los separa en 4 variables(id, nombre, email, ciudad)
+     * Añade un objeto con esas 4 variables a la clase Customers
+     * Carga los clientes en la tabla, el grafico y el total de clientes en el metodo
+     * {@link #onActionChooser(ActionEvent)}
+     * @param archivo
+     */
+    public void loadCSV (File archivo) {
         data.clear();
 
         try (BufferedReader br = new BufferedReader(new FileReader(archivo))) {
@@ -157,6 +201,14 @@ public class HelloController implements Initializable {
         tableView.setItems(data);
     }
 
+    /**
+     * Crea el grafico con la clase JFreeChart
+     * Se le asigna un borderPanel para meter dentro el gráfico
+     * Carga los objetos de la clase Customers escoge unicamente las ciudades(getCiudad) y su cantidad
+     * Crea un bucle hasta rellenar todas las ciudades con sus respectivas cantidades
+     * Esta funcion delega la creacion del grafico al metodo
+     * {@link #onActionChooser(ActionEvent)}
+     */
     @FXML
     public void crearGrafico() {
         if (data.isEmpty()) return;
@@ -182,6 +234,13 @@ public class HelloController implements Initializable {
     }
 
 
+    /**
+     * onExportPDF Abre el buscador de archivos y selecciona la ubicacion donde lo querremos guardar
+     * Llama a exportarPDF
+     * Este metodo se llama en la funcion exportarAPDF para seleccionar donde guardarlo
+     * {@link #exportarAPDF(File)}
+     * @param event
+     */
     @FXML
     private void onExportPDF(ActionEvent event) {
         FileChooser fileChooser = new FileChooser();
@@ -193,36 +252,33 @@ public class HelloController implements Initializable {
         }
     }
 
+    /**
+     * Crea el pdf capturando el contenido y la imagen
+     * Añade un pequeño diseño al pdf
+     * @param archivo
+     */
     @FXML
     private void exportarAPDF(File archivo) {
         try (PDDocument document = new PDDocument()) {
 
             PDPage page = new PDPage(PDRectangle.A4);
             document.addPage(page);
-
             PDPageContentStream contentStream = new PDPageContentStream(document, page);
-
 
             WritableImage fxImage = chartPane.snapshot(new SnapshotParameters(), null);
             BufferedImage bufferedImage = SwingFXUtils.fromFXImage(fxImage, null);
 
-
-            org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject pdImage =
-                    LosslessFactory.createFromImage(document, bufferedImage);
-
+            PDImageXObject pdImage = LosslessFactory.createFromImage(document, bufferedImage);
 
             float scale = 0.5f;
             contentStream.drawImage(pdImage, 50, 400, pdImage.getWidth() * scale, pdImage.getHeight() * scale);
 
             WritableImage tableImage = tableView.snapshot(new SnapshotParameters(), null);
             BufferedImage bufferedTable = SwingFXUtils.fromFXImage(tableImage, null);
-            org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject pdTable =
-                    LosslessFactory.createFromImage(document, bufferedTable);
+            PDImageXObject pdTable = LosslessFactory.createFromImage(document, bufferedTable);
 
             contentStream.drawImage(pdTable, 50, 100, pdTable.getWidth() * scale, pdTable.getHeight() * scale);
-
             contentStream.close();
-
             document.save(archivo);
             System.out.println("PDF exportado a: " + archivo.getAbsolutePath());
 
@@ -231,6 +287,10 @@ public class HelloController implements Initializable {
         }
     }
 
+    /**
+     * Recopila las ciudades que se han cogido para crear el grafico y las introduce en el comboBox cuando se usa el metodo:
+     * {@link #onActionChooser(ActionEvent)}
+     */
     private void llenarComboBoxCiudades() {
         Set<String> ciudades = data.stream()
                 .map(Customers::getCiudad)
@@ -243,6 +303,10 @@ public class HelloController implements Initializable {
         comboBoxCity.setValue("Todas");
     }
 
+    /**
+     * Cuando se pulse el boton buttonApplyFilters guardara Filtros
+     *
+     */
     @FXML
     private void applyFilter() {
         String ciudadSeleccionada = comboBoxCity.getValue();
@@ -259,5 +323,24 @@ public class HelloController implements Initializable {
         tableView.setItems(filtrados);
         labelTotalCustomers.setText(String.valueOf(filtrados.size()));
     }
+
+    @FXML
+    public void onActionHelp(ActionEvent actionEvent) {
+        try{
+            FXMLLoader helpView = new FXMLLoader(getClass().getResource("help-view.fxml"));
+            Parent root = helpView.load();
+            HelpController helpController = helpView.getController();
+            helpController.setLenguage(bundle);
+
+            Stage stage = new Stage();
+            stage.setTitle("Help");
+            stage.setScene(new Scene(root,200, 75));
+            stage.show();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
 
 }
