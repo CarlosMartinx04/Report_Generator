@@ -1,0 +1,8 @@
+Package: report_generator
+Version: 1.0-SNAPSHOT
+Section: utils
+Priority: optional
+Architecture: all
+Depends: openjdk-25-jre
+Maintainer: carlos <test@test.com>
+Description: Aplicacion .deb.

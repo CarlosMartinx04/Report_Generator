@@ -68,6 +68,9 @@ public class HelloController implements Initializable {
 
     private ObservableList<Customers> data = FXCollections.observableArrayList();
 
+    public ObservableList<Customers> getData() {
+        return data;
+    }
 
     @FXML
     private Label labelCustomers, labelTotalCustomers;
@@ -322,6 +325,7 @@ public class HelloController implements Initializable {
 
         tableView.setItems(filtrados);
         labelTotalCustomers.setText(String.valueOf(filtrados.size()));
+        crearGrafico();
     }
 
     @FXML
